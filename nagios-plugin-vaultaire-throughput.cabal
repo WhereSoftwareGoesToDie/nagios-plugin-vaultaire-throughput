@@ -29,6 +29,7 @@ executable nagios-plugin-vaultaire-throughput
                        bytestring,
                        mtl,
                        vaultaire-common,
+                       chevalier-common,
                        nagios-check
   hs-source-dirs:      src
   default-language:    Haskell2010

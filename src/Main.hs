@@ -2,7 +2,6 @@
 {-# LANGUAGE RecordWildCards   #-}
 
 module Main where
-
 import           Control.Exception
 import           Control.Monad
 import           Control.Monad.Reader
@@ -14,22 +13,33 @@ import           Data.Word                          (Word64)
 import           Network.BSD
 import           Options.Applicative
 
+import           Chevalier.Client
 import           Vaultaire.Types
 import           System.Nagios.Plugin
 
-helpfulParser :: ParserInfo String
+helpfulParser :: ParserInfo (String, String)
 helpfulParser = info (helper <*> optionsParser) fullDesc
 
-optionsParser :: Parser String
-optionsParser = parseBroker
+optionsParser :: Parser (String, String)
+optionsParser = (,) <$> parseBroker <*> parseChevalierURI
   where
     parseBroker = strOption $
-           long "broker"
+           long "broker-host"
         <> short 'b'
-        <> metavar "BROKER"
-        <> value "tcp://localhost:6660"
+        <> metavar "BROKER-HOST"
+        <> value "localhost"
         <> showDefault
-        <> help "Vault broker URI"
+        <> help "Vault broker host"
+
+    parseChevalierURI = strOption $
+           long "chevalier-uri"
+        <> short 'c'
+        <> metavar "CHEVALIER-URI"
+        <> value "tcp://localhost:6283"
+        <> showDefault
+        <> help "Chevalier reader URI"
 
 main :: IO ()
-main = error "implement me!"
+main = runNagiosPlugin $ do
+    (broker, chevalier) <- liftIO $ execParser helpfulParser
+    error "implement me!"
