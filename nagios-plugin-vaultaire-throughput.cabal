@@ -25,7 +25,6 @@ executable nagios-plugin-vaultaire-throughput
   build-depends:       base >=4.7 && <5,
                        text,
                        optparse-applicative,
-                       zeromq4-haskell,
                        network,
                        bytestring,
                        mtl,

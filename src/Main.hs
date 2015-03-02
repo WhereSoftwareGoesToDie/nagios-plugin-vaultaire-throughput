@@ -13,7 +13,6 @@ import qualified Data.Text                          as T (pack, strip)
 import           Data.Word                          (Word64)
 import           Network.BSD
 import           Options.Applicative
-import           System.ZMQ4
 
 import           Vaultaire.Types
 import           System.Nagios.Plugin
