@@ -24,6 +24,11 @@ executable nagios-plugin-vaultaire-throughput
   main-is:             Main.hs
   build-depends:       base >=4.7 && <5,
                        text,
+                       optparse-applicative,
+                       zeromq4-haskell,
+                       network,
+                       bytestring,
+                       mtl,
                        vaultaire-common,
                        nagios-check
   hs-source-dirs:      src
