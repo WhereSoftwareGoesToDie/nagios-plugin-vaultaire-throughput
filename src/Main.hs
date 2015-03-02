@@ -2,6 +2,7 @@
 {-# LANGUAGE RecordWildCards   #-}
 
 module Main where
+
 import           Control.Exception
 import           Control.Monad
 import           Control.Monad.Reader
@@ -17,11 +18,21 @@ import           Chevalier.Client
 import           Vaultaire.Types
 import           System.Nagios.Plugin
 
-helpfulParser :: ParserInfo (String, String)
+data PluginOpts = PluginOpts {
+    _broker_host :: String,
+    _chevalier_uri :: String,
+    _telemetry_origin :: String,
+    _check_origin :: String
+}
+
+helpfulParser :: ParserInfo PluginOpts
 helpfulParser = info (helper <*> optionsParser) fullDesc
 
-optionsParser :: Parser (String, String)
-optionsParser = (,) <$> parseBroker <*> parseChevalierURI
+optionsParser :: Parser PluginOpts
+optionsParser = PluginOpts <$> parseBroker
+                           <*> parseChevalierURI
+                           <*> parseTelemetryOrigin
+                           <*> parseCheckOrigin
   where
     parseBroker = strOption $
            long "broker-host"
@@ -39,7 +50,15 @@ optionsParser = (,) <$> parseBroker <*> parseChevalierURI
         <> showDefault
         <> help "Chevalier reader URI"
 
+    parseTelemetryOrigin = strArgument $
+           metavar "TELEMETRY-ORIGIN"
+        <> help "Origin Vaultaire telemetry is written to"
+
+    parseCheckOrigin = strArgument $
+           metavar "CHECK-ORIGIN"
+        <> help "Origin for which to check throughput"
+
 main :: IO ()
 main = runNagiosPlugin $ do
-    (broker, chevalier) <- liftIO $ execParser helpfulParser
+    PluginOpts{..} <- liftIO $ execParser helpfulParser
     error "implement me!"
