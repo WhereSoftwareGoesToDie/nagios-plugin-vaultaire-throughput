@@ -9,9 +9,10 @@ import           Control.Monad.Reader
 import           Control.Monad.State
 import           Control.Monad.Trans
 import qualified Data.ByteString.Char8              as BSC (pack)
+import           Data.Maybe
 import qualified Data.Text                          as T (pack, strip)
 import           Data.Word                          (Word64)
-import           Network.BSD
+import           Network.URI
 import           Options.Applicative
 
 import           Chevalier.Client
@@ -20,8 +21,8 @@ import           System.Nagios.Plugin
 
 data PluginOpts = PluginOpts {
     _broker_host :: String,
-    _chevalier_uri :: String,
-    _telemetry_origin :: String,
+    _chevalier_uri :: URI,
+    _telemetry_origin :: Origin,
     _check_origin :: String
 }
 
@@ -42,7 +43,7 @@ optionsParser = PluginOpts <$> parseBroker
         <> showDefault
         <> help "Vault broker host"
 
-    parseChevalierURI = strOption $
+    parseChevalierURI = option auto $
            long "chevalier-uri"
         <> short 'c'
         <> metavar "CHEVALIER-URI"
@@ -50,15 +51,18 @@ optionsParser = PluginOpts <$> parseBroker
         <> showDefault
         <> help "Chevalier reader URI"
 
-    parseTelemetryOrigin = strArgument $
+    parseTelemetryOrigin = argument auto $
            metavar "TELEMETRY-ORIGIN"
         <> help "Origin Vaultaire telemetry is written to"
 
-    parseCheckOrigin = strArgument $
+    parseCheckOrigin = argument auto $
            metavar "CHECK-ORIGIN"
         <> help "Origin for which to check throughput"
 
 main :: IO ()
 main = runNagiosPlugin $ do
     PluginOpts{..} <- liftIO $ execParser helpfulParser
+    sources <- getAddresses' _chevalier_uri _telemetry_origin (sourceTags _check_origin)
     error "implement me!"
+  where
+    sourceTags org = [("origin", org), ("telemetry_msg_type", "writer-count-simple-point")]

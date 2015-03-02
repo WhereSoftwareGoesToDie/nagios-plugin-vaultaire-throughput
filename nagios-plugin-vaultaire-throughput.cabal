@@ -25,11 +25,11 @@ executable nagios-plugin-vaultaire-throughput
   build-depends:       base >=4.7 && <5,
                        text,
                        optparse-applicative,
-                       network,
+                       network-uri,
                        bytestring,
                        mtl,
                        vaultaire-common,
-                       chevalier-common,
+                       chevalier-common >= 0.6.0,
                        nagios-check
   hs-source-dirs:      src
   default-language:    Haskell2010
