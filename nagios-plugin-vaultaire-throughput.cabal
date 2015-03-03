@@ -20,6 +20,10 @@ build-type:          Simple
 extra-source-files:  README.md
 cabal-version:       >=1.10
 
+source-repository HEAD
+  type:     git
+  location: https://github.com/anchor/nagios-plugin-vaultaire-throughput
+
 executable nagios-plugin-vaultaire-throughput
   main-is:             Main.hs
   build-depends:       base >=4.7 && <5,
