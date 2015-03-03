@@ -1,0 +1,41 @@
+name:                nagios-plugin-vaultaire-throughput
+version:             0.1.0.0
+synopsis:            Nagios plugin to verify continuing write traffic to a Vaultaire origin
+description:         Plugin for the Nagios monitoring system (and 
+                     compatible) which checks that the rate of data 
+                     writes to a given Vaultaire origin does not drop
+                     below a configurable threshold.
+
+                     The intended use case is to ensure that misadventures 
+                     such as collector failure or misconfiguration do not
+                     go unnoticed.
+homepage:            https://github.com/anchor/nagios-plugin-vaultaire-throughput
+license:             BSD3
+license-file:        LICENSE
+author:              Sharif Olorin
+maintainer:          engineering@anchor.net.au
+copyright:           Anchor Systems 2015
+category:            System
+build-type:          Simple
+extra-source-files:  README.md
+cabal-version:       >=1.10
+
+source-repository HEAD
+  type:     git
+  location: https://github.com/anchor/nagios-plugin-vaultaire-throughput
+
+executable nagios-plugin-vaultaire-throughput
+  main-is:             Main.hs
+  build-depends:       base >=4.7 && <5,
+                       bytestring,
+                       chevalier-common >= 0.6.0,
+                       marquise,
+                       mtl,
+                       nagios-check,
+                       network-uri,
+                       optparse-applicative,
+                       pipes,
+                       text,
+                       vaultaire-common
+  hs-source-dirs:      src
+  default-language:    Haskell2010
