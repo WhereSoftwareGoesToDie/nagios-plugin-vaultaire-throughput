@@ -4,6 +4,7 @@
 module Main where
 
 import Control.Monad.Reader
+import Data.Either
 import Data.Maybe
 import Data.String
 import Data.Word (Word64)
@@ -128,13 +129,7 @@ sumSeries PluginOpts{..} ts ts' addrs =
     liftIO . withReaderConnection _brokerHost $ \conn ->
         let oneSeries addr = runMarquise . P.fold sumPoint 0 id $
                 readSimplePoints NoRetry addr ts ts' _telemetryOrigin conn
-        in winnow 0 <$> mapM oneSeries addrs
-  where
-    winnow :: Num b => b -> [Either a b] -> ([a], b)
-    winnow z = work ([],z)
-      where work (es,b) [] = (es, b)
-            work (es,b) (Left  e:r) = work (e:es,b) r
-            work (es,b) (Right v:r) = work (es,b+v) r
+        in fmap sum . partitionEithers <$> mapM oneSeries addrs
 
 sumPoint :: Word64 -> SimplePoint -> Word64
 sumPoint acc (SimplePoint _a _t p) = acc + p
