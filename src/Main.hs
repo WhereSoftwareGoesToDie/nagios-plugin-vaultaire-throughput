@@ -71,6 +71,10 @@ optionsParser = PluginOpts <$> parseBroker
             Nothing -> readerError $ "Cannot parse " <> name <> ": " <> s
             Just v -> return v
 
+-- | The period of time over which to sum written points, in minutes.
+checkPeriod :: Word64
+checkPeriod = 10
+
 main :: IO ()
 main = runNagiosPlugin $ do
     opt@PluginOpts{..} <- liftIO $ execParser helpfulParser
@@ -81,17 +85,18 @@ main = runNagiosPlugin $ do
         as -> do
 
             ts' <- liftIO getCurrentTimeNanoseconds
-            let ts = ts' - (10 * 60 * 1000000000)
+            let ts = ts' - ((fromIntegral checkPeriod) * 60 * 1000000000)
 
             total <- sumSeries opt ts ts' (fst <$> as)
 
             case total of
                 ([],v) -> do
+                    let intervalMsg = " in the last " <> show checkPeriod <> " minutes"
                     if v == 0
                         then addResult Critical . fromString $
-                            "Only 0 points for origin " <> show _checkOrigin
+                            "No points written for origin " <> show _checkOrigin <> intervalMsg
                         else addResult OK . fromString $
-                            "More than 0 points for origin " <> show _checkOrigin
+                            "Nonzero points written for origin " <> show _checkOrigin <> intervalMsg
                     addPerfDatum
                         "points-written"
                         (IntegralValue $ fromIntegral v)
