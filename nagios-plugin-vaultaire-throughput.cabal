@@ -23,13 +23,15 @@ cabal-version:       >=1.10
 executable nagios-plugin-vaultaire-throughput
   main-is:             Main.hs
   build-depends:       base >=4.7 && <5,
-                       text,
-                       optparse-applicative,
-                       network-uri,
                        bytestring,
-                       mtl,
-                       vaultaire-common,
                        chevalier-common >= 0.6.0,
-                       nagios-check
+                       marquise,
+                       mtl,
+                       nagios-check,
+                       network-uri,
+                       optparse-applicative,
+                       pipes,
+                       text,
+                       vaultaire-common
   hs-source-dirs:      src
   default-language:    Haskell2010
