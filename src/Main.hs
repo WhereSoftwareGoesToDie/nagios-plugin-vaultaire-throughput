@@ -73,21 +73,20 @@ optionsParser = PluginOpts <$> parseBroker
 
 main :: IO ()
 main = runNagiosPlugin $ do
-    PluginOpts{..} <- liftIO $ execParser helpfulParser
+    opt@PluginOpts{..} <- liftIO $ execParser helpfulParser
     sources <- getAddresses' _chevalierUri _telemetryOrigin (sourceTags $ show _checkOrigin)
     case sources of
-        [(addr,_sd)] -> do
+        [] -> addResult Unknown . fromString $ "No sources found for origin: "
+            <> show _checkOrigin
+        as -> do
+
             ts' <- liftIO getCurrentTimeNanoseconds
             let ts = ts' - (10 * 60 * 1000000000)
 
-            r <- liftIO . withReaderConnection _brokerHost $ \conn ->
-                runMarquise . P.fold sumPoint 0 id $
-                    readSimplePoints NoRetry addr ts ts' _telemetryOrigin conn
-            case r of
-                Left e  -> addResult Critical . fromString $
-                    "Could not get telemetry for origin " <> show _checkOrigin <>
-                    " : " <> show e
-                Right v -> do
+            total <- sumSeries opt ts ts' (fst <$> as)
+
+            case total of
+                ([],v) -> do
                     if v == 0
                         then addResult Critical . fromString $
                             "Only 0 points for origin " <> show _checkOrigin
@@ -101,14 +100,36 @@ main = runNagiosPlugin $ do
                         Nothing
                         Nothing
                         Nothing
-
-        l -> addResult Unknown . fromString $ "Found " <> show (length l) <>
-            " sources for origin: " <> show _checkOrigin
+                (es,_) -> addResult Critical . fromString $
+                    "Could not get telemetry for origin " <> show _checkOrigin <>
+                    ":\n" <> unlines (show <$> es)
   where
     sourceTags org =
         [ ("origin", org)
         , ("telemetry_msg_type", "writer-count-simple-point")
         ]
+
+-- | Sum the time series of simple points from a bunch of addresses.
+--
+-- Returns a list of any errors encountered and the total.
+sumSeries
+    :: (MonadIO m)
+    => PluginOpts
+    -> TimeStamp -- ^ Start of time
+    -> TimeStamp -- ^ End of time
+    -> [Address] -- ^ Addresses to sum.
+    -> m ([MarquiseErrorType], Word64)
+sumSeries PluginOpts{..} ts ts' addrs =
+    liftIO . withReaderConnection _brokerHost $ \conn ->
+        let oneSeries addr = runMarquise . P.fold sumPoint 0 id $
+                readSimplePoints NoRetry addr ts ts' _telemetryOrigin conn
+        in winnow 0 <$> mapM oneSeries addrs
+  where
+    winnow :: Num b => b -> [Either a b] -> ([a], b)
+    winnow z = work ([],z)
+      where work (es,b) [] = (es, b)
+            work (es,b) (Left  e:r) = work (e:es,b) r
+            work (es,b) (Right v:r) = work (es,b+v) r
 
 sumPoint :: Word64 -> SimplePoint -> Word64
 sumPoint acc (SimplePoint _a _t p) = acc + p
