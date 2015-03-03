@@ -90,7 +90,7 @@ main = runNagiosPlugin $ do
                 ([],v) -> do
                     if v == 0
                         then addResult Critical . fromString $
-                            "Only 0 points for origin " <> show _checkOrigin
+                            "No points for origin " <> show _checkOrigin
                         else addResult OK . fromString $
                             "More than 0 points for origin " <> show _checkOrigin
                     addPerfDatum
